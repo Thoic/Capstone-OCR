@@ -5,6 +5,6 @@ Eric Chen
 
 ## Build and Deploy
 ```bash
-export FLASK_APP=hello
-flask run
+$ export FLASK_APP=hello
+$ flask run
 ```
