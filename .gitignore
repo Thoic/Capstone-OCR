@@ -2,3 +2,4 @@ __pycache__/
 .venv/
 uploads/*.pdf
 .vscode/
+google_key/*.json
