@@ -17,5 +17,3 @@ $ export GOOGLE_APPLICATION_CREDENTIALS="./google_key/*.json
 $ export FLASK_APP=ocr.py
 $ flask run
 ```
-
-### App Engine Deployment
