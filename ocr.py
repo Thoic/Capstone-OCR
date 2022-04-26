@@ -1,9 +1,10 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
+from google.cloud import vision
 
 UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = { 'pdf' }
+ALLOWED_EXTENSIONS = { 'jpg' }
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -38,7 +39,7 @@ def upload_file():
 @app.route('/<string:filename>')
 def view_fields(filename=''):
     try:
-        curr_file = open(f"{app.config['UPLOAD_FOLDER']}/{filename}", 'r')
+        curr_file = open(f"{app.config['UPLOAD_FOLDER']}/{filename}", 'rb')
     except Exception as e:
         print(e)
         return redirect(url_for('upload_file'))
