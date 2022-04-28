@@ -22,3 +22,4 @@ for text in response.text_annotations:
 
 if response.error.message:
     raise Exception(response.error.message)
+
