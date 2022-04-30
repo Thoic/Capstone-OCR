@@ -1,6 +1,6 @@
 # CS 4273 OCR
-Nick Thompson
-Kaden Cochran
+Nick Thompson  
+Kaden Cochran  
 Eric Chen
 
 ## Build and Deploy
