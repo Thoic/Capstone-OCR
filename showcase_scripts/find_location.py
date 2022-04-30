@@ -1,11 +1,12 @@
 from gettext import find
 from enum import Enum
+import math
 from PIL import Image
 import io
 
 from google.cloud import vision
 
-IMAGE_PATH = 'dataset/original2.jpg'
+IMAGE_PATH = 'dataset/1 degree to right.jpg'
 
 def assemble_word(word):
     assembled_word=""
@@ -55,6 +56,8 @@ def main():
 
     width, height = img.size
 
+
+
     #image with NPI
     img1 = img.crop((width/1.5, height/7, width, height/5))
     buffer1 = io.BytesIO()
@@ -68,15 +71,19 @@ def main():
     document1 = response1.full_text_annotation
 
     location_npi = find_word_location(document1, 'NPI')
-    npi_text = text_within(document1, 20+location_npi.vertices[1].x, -10+location_npi.vertices[1].y, 235+location_npi.vertices[1].x, 10+location_npi.vertices[2].y)
+    tilt_angle = math.atan2(location_npi.vertices[3].y-location_npi.vertices[0].y,location_npi.vertices[0].x-location_npi.vertices[3].x) * (180/math.pi)
+    img.show()
+    img = img.rotate(90-tilt_angle)
+    img.show()
+    print(location_npi)
+    npi_text = text_within(document1, location_npi.vertices[1].x, location_npi.vertices[1].y, (width/8) + location_npi.vertices[1].x, 10+location_npi.vertices[2].y)
     print(npi_text)
 
 
-    #image with form data
+    #image with main form data
     img2 = img.crop((0, height/4, width, height/2))
     buffer2 = io.BytesIO()
     img2.save(buffer2, "PNG")
-    img2.show()
 
     content2 = buffer2.getvalue()
 
@@ -86,8 +93,9 @@ def main():
     response2 = client.document_text_detection(image=image2)
     document2 = response2.full_text_annotation
 
-    location = find_word_location(document2, 'PLAN')
-    plan_text = text_within(document2, 10+location.vertices[1].x, -15+location.vertices[1].y, 800+location.vertices[1].x, 10+location.vertices[2].y)
+    location_plan = find_word_location(document2, 'PLAN')
+    plan_text = text_within(document2, 10+location_plan.vertices[1].x, -15+location_plan.vertices[1].y, 800+location_plan.vertices[1].x, 10+location_plan.vertices[2].y)
+    print(plan_text)
 
 
 if __name__ == "__main__":
