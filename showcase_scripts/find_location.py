@@ -1,5 +1,6 @@
 from gettext import find
 from enum import Enum
+from PIL import Image
 import io
 
 from google.cloud import vision
@@ -50,22 +51,43 @@ def text_within(document, x1, y1, x2, y2) -> str:
 def main():
     client = vision.ImageAnnotatorClient()
 
-    with io.open(IMAGE_PATH, "rb") as image_file:
-        content = image_file.read()
+    img = Image.open(IMAGE_PATH)
 
-    image = vision.Image(content=content)
+    width, height = img.size
 
-    response = client.document_text_detection(image=image)
-    document = response.full_text_annotation
+    #image with NPI
+    img1 = img.crop((width/1.5, height/7, width, height/5))
+    buffer1 = io.BytesIO()
+    img1.save(buffer1, "PNG")
 
-    locationMich = find_word_location(document, 'MICHIGAN')
-    location = find_word_location(document, 'PLAN')
-    print('loc plan:')
-    print(location)
-    print('loc michigan:')
-    print(locationMich)
-    text = text_within(document, 10+location.vertices[1].x, -15+location.vertices[1].y, 800+location.vertices[1].x, 10+location.vertices[2].y)
-    print(text)
+    content1 = buffer1.getvalue()
+
+    image1 = vision.Image(content = content1)
+
+    response1 = client.document_text_detection(image=image1)
+    document1 = response1.full_text_annotation
+
+    location_npi = find_word_location(document1, 'NPI')
+    npi_text = text_within(document1, 20+location_npi.vertices[1].x, -10+location_npi.vertices[1].y, 235+location_npi.vertices[1].x, 10+location_npi.vertices[2].y)
+    print(npi_text)
+
+
+    #image with form data
+    img2 = img.crop((0, height/4, width, height/2))
+    buffer2 = io.BytesIO()
+    img2.save(buffer2, "PNG")
+    img2.show()
+
+    content2 = buffer2.getvalue()
+
+    image2 = vision.Image(content=content2)
+    
+
+    response2 = client.document_text_detection(image=image2)
+    document2 = response2.full_text_annotation
+
+    location = find_word_location(document2, 'PLAN')
+    plan_text = text_within(document2, 10+location.vertices[1].x, -15+location.vertices[1].y, 800+location.vertices[1].x, 10+location.vertices[2].y)
 
 
 if __name__ == "__main__":
