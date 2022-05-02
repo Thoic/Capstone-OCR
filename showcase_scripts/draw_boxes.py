@@ -76,6 +76,8 @@ def get_document_bounds(image_file, feature):
 
 def render_doc_text(filein, fileout):
     image = Image.open(filein)
+    bounds = get_document_bounds(filein, FeatureType.BLOCK)
+    draw_boxes(image,bounds, "blue")
     bounds = get_document_bounds(filein, FeatureType.PARA)
     draw_boxes(image, bounds, "red")
     bounds = get_document_bounds(filein, FeatureType.WORD)
@@ -88,7 +90,7 @@ def render_doc_text(filein, fileout):
 
 
 def main():
-    render_doc_text(IMAGE_PATH, OUT_PATH)
+    render_doc_text(IMAGE_PATH, 0)
 
 if __name__ == "__main__":
     main()

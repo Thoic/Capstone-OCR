@@ -87,11 +87,8 @@ def main():
     response1 = client.document_text_detection(image=image1)
     document1 = response1.full_text_annotation
 
-
-
-    # location_npi = find_word_location(document1, 'NPI')
-    # npi_text = text_within(document1, 15+location_npi.vertices[1].x, -5+location_npi.vertices[1].y, 245 + location_npi.vertices[1].x, 5+location_npi.vertices[2].y)
-    print(npi_text)
+    npi_number = document1.text.split()[1].split(')')[0]
+    print(npi_number)
 
 
     #image with header
