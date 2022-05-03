@@ -8,47 +8,6 @@ from google.cloud import vision
 
 IMAGE_PATH = 'dataset/original2.jpg'
 
-def assemble_word(word):
-    assembled_word=""
-    for symbol in word.symbols:
-        assembled_word += symbol.text
-    return assembled_word
-
-def find_word_location(document, word_to_find):
-    for page in document.pages:
-        for block in page.blocks:
-            for paragraph in block.paragraphs:
-                for word in paragraph.words:
-                    assembled_word = assemble_word(word)
-                    if(assembled_word == word_to_find):
-                        return word.bounding_box
-
-def text_within(document, x1, y1, x2, y2) -> str:
-    text = ''
-    for page in document.pages:
-        for block in page.blocks:
-            for paragraph in block.paragraphs:
-                for word in paragraph.words:
-                    for symbol in word.symbols:
-                        min_x = min(symbol.bounding_box.vertices[0].x, symbol.bounding_box.vertices[1].x,
-                            symbol.bounding_box.vertices[2].x, symbol.bounding_box.vertices[3].x)
-                        max_x = max(symbol.bounding_box.vertices[0].x, symbol.bounding_box.vertices[1].x,
-                            symbol.bounding_box.vertices[2].x, symbol.bounding_box.vertices[3].x)
-                        min_y = min(symbol.bounding_box.vertices[0].y, symbol.bounding_box.vertices[1].y,
-                            symbol.bounding_box.vertices[2].y, symbol.bounding_box.vertices[3].y)
-                        max_y = max(symbol.bounding_box.vertices[0].y, symbol.bounding_box.vertices[1].y,
-                            symbol.bounding_box.vertices[2].y, symbol.bounding_box.vertices[3].y)
-                        if (min_x >= x1 and max_x <= x2 and min_y >= y1 and max_y <= y2):
-                            text += symbol.text
-                            if (symbol.property.detected_break.type == 1 or
-                                symbol.property.detected_break.type == 3):
-                                text += ' '
-                            if (symbol.property.detected_break.type == 2):
-                                text += '\t'
-                            if (symbol.property.detected_break.type == 5):
-                                text+='\n'
-    return text
-
 def main():
     client = vision.ImageAnnotatorClient()
 
@@ -74,25 +33,24 @@ def main():
 
 
 
-    # image with NPI
-    img1 = img.crop((width/1.35, height/6.3, width, height/5))
-    buffer1 = io.BytesIO()
-    img1.save(buffer1, "PNG")
-    img1.show()
+    # image for NPI
+    # img1 = img.crop((width/1.35, height/6.3, width, height/5))
+    # buffer1 = io.BytesIO()
+    # img1.save(buffer1, "PNG")
 
-    content1 = buffer1.getvalue()
+    # content1 = buffer1.getvalue()
 
-    image1 = vision.Image(content = content1)
+    # image1 = vision.Image(content = content1)
 
-    response1 = client.document_text_detection(image=image1)
-    document1 = response1.full_text_annotation
+    # response1 = client.document_text_detection(image=image1)
+    # document1 = response1.full_text_annotation
 
-    npi_number = document1.text.split()[1].split(')')[0]
-    print(npi_number)
+    # npi_number = document1.text.split()[1].split(')')[0]
+    # print(npi_number)
 
 
-    #image with header
-    # img2 = img.crop((0, height/3.1, width, height/2.7))
+    #image for plan
+    # img2 = img.crop((0, height/3.1, width/2, height/2.92))
     # buffer2 = io.BytesIO()
     # img2.save(buffer2, "PNG")
 
@@ -100,13 +58,23 @@ def main():
 
     # image2 = vision.Image(content=content2)
     
-
     # response2 = client.document_text_detection(image=image2)
     # document2 = response2.full_text_annotation
 
-    # location_plan = find_word_location(document2, 'PLAN')
-    # plan_text = text_within(document2, 10+location_plan.vertices[1].x, -5+location_plan.vertices[1].y, 800+location_plan.vertices[1].x, 5+location_plan.vertices[2].y)
-    # print(plan_text)
+    # plan_name = document2.text.split(':')[1].strip()
+    # print(plan_name)
+
+    img3 = img.crop((0, height/3.1, width/2, height/2.92))
+    buffer3 = io.BytesIO()
+    img3.save(buffer3, 'PNG')
+
+    content3 = buffer.getvalue()
+
+    image3 = vision.Image(content=content3)
+
+    response3 = client.document_text_detection(image=image3)
+    document3 = response3.full_text_annotation
+
 
     # location_client = find_word_location(document2, 'ID')
     # client_id = text_within(document2, 15+location_client.vertices[1].x, -5+location_client.vertices[1].y, 200+location_client.vertices[1].x, 5+location_client.vertices[2].y)
