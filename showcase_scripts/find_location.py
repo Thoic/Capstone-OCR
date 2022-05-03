@@ -54,10 +54,8 @@ def main():
 
     img = Image.open(IMAGE_PATH)
 
-    width, height = img.size
-
     # fix tilt
-    img0 = img.crop((0,0, width, height))
+    img0 = img.copy()
     buffer = io.BytesIO()
     img0.save(buffer, "PNG")
 
@@ -72,6 +70,7 @@ def main():
     tilt_angle = math.atan2(vertices[3].y-vertices[2].y,vertices[2].x-vertices[3].x) * (180/math.pi)
     img = img.rotate(-tilt_angle)
 
+    width, height = img.size
 
 
     # image with NPI
@@ -123,6 +122,7 @@ def main():
     # subclient_name = subclient_name.strip()
     # print(subclient_id)
     # print(subclient_name)
+
     
     # image with header right side
     # img3 = img.crop((width/2, height/3.15, width, height/2.75))
@@ -142,17 +142,16 @@ def main():
     # print(product_text)
 
     # image below header
-    # img3 = img.crop((0, height/2.8, width/2, height/2.6))
-    # buffer3 = io.BytesIO()
-    # img3.save(buffer3, "PNG")
-    # img3.show()
+    # img4 = img.crop((0, height/2.8, width/2, height/2.6))
+    # buffer4 = io.BytesIO()
+    # img4.save(buffer4, "PNG")
 
-    # content3 = buffer3.getvalue()
+    # content4 = buffer4.getvalue()
 
-    # image3 = vision.Image(content=content3)
+    # image4 = vision.Image(content=content4)
 
-    # response3 = client.document_text_detection(image=image3)
-    # document3 = response3.full_text_annotation
+    # response4 = client.document_text_detection(image=image4)
+    # document4 = response4.full_text_annotation
 
     # location_network = find_word_location(document3, 'NETWORK')
     # network_name = text_within(document3, 15+location_network.vertices[1].x, -5+location_network.vertices[1].y, width/2, 5+location_network.vertices[2].y)
@@ -160,39 +159,34 @@ def main():
     # print(network_name)
 
     # image of form data
-    index = 0
     table_data = []
-    while True:
-        img4 = img.crop((0, height/2.6+index, width, height/2.4+index))
-        buffer4 = io.BytesIO()
-        img4.save(buffer4, "PNG")
-        img4.show()
+    img5 = img.crop((0, height/2.7, width, height/1.7))
+    buffer5 = io.BytesIO()
+    img5.save(buffer5, "PNG")
 
-        content4 = buffer4.getvalue()
+    content5 = buffer5.getvalue()
 
-        image4 = vision.Image(content=content4)
+    image5 = vision.Image(content=content5)
 
-        response4 = client.document_text_detection(image=image4)
-        document4 = response4.full_text_annotation
+    response5 = client.document_text_detection(image=image5)
+    document5 = response5.full_text_annotation
 
-        if document4.text == '':
-            break
-        else:
-            text = document4.text.replace(' ', '\n')
-            table_data.append(text.split())
+    table_string = document5.text.strip()
+    raw_table = table_string.split('\n')
+    num_entries = len(raw_table)//10
 
-            index += 50
-
+    for i in range(num_entries):
+        table_data.append((raw_table[i],
+                            raw_table[num_entries+i],
+                            raw_table[2*num_entries+i],
+                            raw_table[3*num_entries+i],
+                            raw_table[4*num_entries+i],
+                            raw_table[5*num_entries+i],
+                            raw_table[6*num_entries+i],
+                            raw_table[7*num_entries+i],
+                            raw_table[8*num_entries+i],
+                            raw_table[9*num_entries+i]))
     print(table_data)
-    print('eef')
-
-
-
-
-
-         
-
-
 
 
 if __name__ == "__main__":
