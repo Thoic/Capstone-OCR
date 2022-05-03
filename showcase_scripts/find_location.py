@@ -103,7 +103,7 @@ def main():
     document2 = response2.full_text_annotation
 
     location_plan = find_word_location(document2, 'PLAN')
-    plan_text = text_within(document2, 10+location_plan.vertices[1].x, -5+location_plan.vertices[1].y, width/2, 5+location_plan.vertices[2].y)
+    plan_text = text_within(document2, 15+location_plan.vertices[1].x, -5+location_plan.vertices[1].y, width/2, 5+location_plan.vertices[2].y)
     plan_text = plan_text.strip()
     print(plan_text)
 
@@ -137,7 +137,7 @@ def main():
     document3 = response3.full_text_annotation
 
     location_product = find_word_location(document3, 'PRODUCT')
-    product_text = text_within(document3, 10+location_product.vertices[1].x, -5+location_product.vertices[1].y, width, 5+location_product.vertices[2].y)
+    product_text = text_within(document3, 15+location_product.vertices[1].x, -5+location_product.vertices[1].y, width, 5+location_product.vertices[2].y)
     product_text = product_text.strip()
     print(product_text)
 
