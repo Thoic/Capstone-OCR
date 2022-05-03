@@ -71,10 +71,11 @@ def main():
     img = img.rotate(-tilt_angle)
 
     width, height = img.size
+    height_adj = math.tan(tilt_angle*(math.pi/180))*width/math.pi
 
 
     # image with NPI
-    img1 = img.crop((width/1.8, height/8, width, height/5))
+    img1 = img.crop((width/1.8, height/8 + height_adj, width, height/5 + height_adj))
     buffer1 = io.BytesIO()
     img1.save(buffer1, "PNG")
 
@@ -91,7 +92,7 @@ def main():
 
 
     # image with header left side
-    img2 = img.crop((0, height/3.15, width/2, height/2.75))
+    img2 = img.crop((0, height/3.15 + height_adj, width/2, height/2.75 + height_adj))
     buffer2 = io.BytesIO()
     img2.save(buffer2, "PNG")
 
@@ -125,7 +126,7 @@ def main():
 
     
     # image with header right side
-    img3 = img.crop((width/2, height/3.15, width, height/2.75))
+    img3 = img.crop((width/2, height/3.15 + height_adj, width, height/2.75 + height_adj))
     buffer3 = io.BytesIO()
     img3.save(buffer3, "PNG")
 
@@ -142,7 +143,7 @@ def main():
     print(product_text)
 
     # image below header
-    img4 = img.crop((0, height/2.8, width/2, height/2.6))
+    img4 = img.crop((0, height/2.8 + height_adj, width/2, height/2.6 + height_adj))
     buffer4 = io.BytesIO()
     img4.save(buffer4, "PNG")
 
@@ -160,7 +161,7 @@ def main():
 
     # image of form data
     table_data = []
-    img5 = img.crop((0, height/2.7, width, height/1.7))
+    img5 = img.crop((0, height/2.7 + height_adj, width, height/1.7 + height_adj))
     buffer5 = io.BytesIO()
     img5.save(buffer5, "PNG")
 
