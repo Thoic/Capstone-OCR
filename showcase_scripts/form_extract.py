@@ -1,10 +1,12 @@
 import math
 from PIL import Image
 import io
+import json
 
 from google.cloud import vision
 
-IMAGE_PATH = 'dataset/3 degrees to right.jpg'
+IMAGE_PATH = 'dataset/center.jpg'
+JSON_PATH = 'dataset/json_data.json'
 
 def assemble_words(paragraph):
     assembled_words=''
@@ -169,6 +171,7 @@ def main():
     # image of form data
     index = 0
     table_data = []
+    table_labels = ['date', 'procedure_code', 'submitted_amount', 'max_approved_fee', 'allowed_amount', 'co-pay', 'payment']
     while True:
         img_temp = img.crop((0, height/2.6+index, width, height/2.5+index))
         buffer = io.BytesIO()
@@ -185,11 +188,35 @@ def main():
             break
         else:
             text = document.text.replace(' ', '\n')
-            table_data.append(text.split())
+            raw_table = text.split()
+            raw_table.pop(9)
+            raw_table.pop(8)
+            raw_table.pop(4) 
+            table_data.append(dict(zip(table_labels, raw_table)))
 
             index += 45
 
     print(f'table_data: {table_data}')
+
+    data = {
+        'npi': npi_number,
+        'plan': plan_name,
+        'product': product_name,
+        'client': {
+            'id': client_id,
+            'name': client_name
+        },
+        'subclient': {
+            'id': subclient_id,
+            'name': subclient_name
+        },
+        'network': network,
+        'table': table_data
+    }
+
+    json_string = json.dumps(data)
+    with open(JSON_PATH, 'w') as outfile:
+        outfile.write(json_string)
 
 
 if __name__ == "__main__":
