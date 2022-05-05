@@ -1,9 +1,10 @@
 import os
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
-from google.cloud import vision
+import json
+from showcase_scripts.form_extract import main  as extract_form
 
-UPLOAD_FOLDER = './uploads'
+UPLOAD_FOLDER = os.path.join('static', 'upload')
 ALLOWED_EXTENSIONS = { 'jpg' }
 
 app = Flask(__name__)
@@ -15,7 +16,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('index.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -36,11 +37,17 @@ def upload_file():
             return redirect(url_for('view_fields', filename=filename))
     return render_template('upload.html')
 
-@app.route('/<string:filename>')
+@app.route('/upload/<string:filename>')
 def view_fields(filename=''):
     try:
-        curr_file = open(f"{app.config['UPLOAD_FOLDER']}/{filename}", 'rb')
+        image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        data, form_id = extract_form(image)
+        return render_template('view.html', data=data, image=filename, form_id=form_id)
+
     except Exception as e:
         print(e)
         return redirect(url_for('upload_file'))
-    return f'{curr_file}'
+
+@app.route('/tech.html')
+def image():
+    return render_template('tech.html')

@@ -1,0 +1,43 @@
+<!doctype html>
+{% if data %}
+<head>
+    <title>{{ form_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/view.css') }}">
+</head>
+<body>
+    <ul class="navbar">
+        <li class="navbar-item"><a class="navbar-text active" href="/upload">Home</a></li>
+        <li class="navbar-item"><a class="navbar-text" href="/tech">Tech</a></li>
+        <li class="navbar-item"><a class="navbar-text" href="/">About</a></li>
+    </ul> 
+    <h1>Form Data</h1>
+    {% if image %}
+        <img src="{{ url_for('static', filename='upload/' + image) }}" alt="form image" width="600" height="730" align="right"/>
+    {% endif %}
+    {% for entry in data %}
+    <h2>Entry: {{ loop.index }}</h2>
+    <ul>
+        <li>Insurance: {{ entry[0] }}</li>
+        <li>CONTRACT ACCESS: {{ entry[1] }}</li>
+        <li>Network: {{ entry[2] }}</li>
+        <li>Provider: {{ entry[3] }}</li>
+        <li>Group: {{ entry[4] }}</li>
+        <li>Group ID: {{ entry[5] }}</li>
+        <li>Date of Service: {{ entry[6] }}</li>
+        <li>Submitted Code: {{ entry[7] }}</li>
+        <li>Approved Code: {{ entry[8] }}</li>
+        <li>Submitted Amount: {{ entry[9] }}</li>
+        <li>Approved Amount: {{ entry[10] }}</li>
+        <li>Allowed Amount: {{ entry[11] }}</li>
+        <li>Deductible: {{ entry[12] }}</li>
+        <li>Co-Pay: {{ entry[13] }}</li>
+        <li>Other Insurance: {{ entry[14] }}</li>
+        <li>Co-Pay (%): {{ entry[15] }}</li>
+        <li>Payment: {{ entry[16] }}</li>
+        <li>Max Met: {{ entry[17] }}</li>
+    </ul>
+    {% endfor %}
+</body>
+{% else %}
+    <h1>JSON failed to load</h1>
+{% endif %}
