@@ -1,16 +1,19 @@
+import csv
+import io
+import math
+import os
+import sys
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
-import math
-from PIL import Image
-import io
-import csv
-import uuid
-import os
-from threading import Thread
-
-from search import find_word_location, find_words_location
 
 from google.cloud import vision
+from PIL import Image
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from showcase_scripts.search import find_word_location, find_words_location
 
 _DEFAULT_POOL = ThreadPoolExecutor()
 
@@ -23,10 +26,12 @@ def threadpool(f, executor=None):
 
 
 OUT_DIR = 'output'
-PLAN_H = 971.0
+
 
 def fix_skew(img, client):
     width, height = img.size
+
+    PLAN_H = 0.294242424242*height
 
     # fix tilt
     img_temp = img.copy()
@@ -81,6 +86,7 @@ def get_npi(img, client):
     if (npi_idx == -1):
         npi_idx = document.text.find('NPI; ')
     provider = document.text[npi_idx+5:document.text.find(')')].strip()
+    print(f'provider: {provider}')
 
     return provider
 
@@ -104,37 +110,42 @@ def get_header(img, client):
     text = document.text.split('PRODUCT:')[1]
     product = text.strip()
     product = product[:product.find('\n')]
+    print(f'product: {product}')
 
     text = document.text.split('PLAN: ')[1]
     insurance = text[:text.find('\n')]
+    print(f'insurance: {insurance}')
 
-    text = text.split('CLIENT/ID: ')[1]
+    text = document.text.split('CLIENT/ID: ')[1]
     group_p1 = text[:text.find(' ')]
-    text = text[len(group_p1):]
+    text = text[len(group_p1)+1:]
 
     group_name = text[:text.find('\n')]
     group_name = group_name.replace(']','J').replace(')','J').strip()
+    print(f'group_name: {group_name}')
 
-    text = text.split('SUBCLIENT: ')[1]
+    text = document.text.split('SUBCLIENT: ')[1]
     group_p2 = text[:text.find(' ')]
 
     group_id = '-'.join([group_p1, group_p2])
+    print(f'group_id: {group_id}')
 
     text = text.split('NETWORK: ')[1]
 
     network = text[:text.find('\n')]
+    print(f'network: {network}')
 
-    network = network == 'PPO DENTIST' or network == 'PREMIER DENTIST'
+    network = 'Yes' if network == 'PPO DENTIST' or network == 'PREMIER DENTIST' else 'No'
 
     return (product, insurance, group_name, group_id, network)
 
 
 @threadpool
-def get_table(img, client):
+def get_table1(img, client):
     width, height = img.size
 
     # image of form table
-    img_temp = img.crop((width/8, height/2.9, width, height/1.9))
+    img_temp = img.crop((width/8, height/2.9, width/2, height/1.7))
     buffer = io.BytesIO()
     img_temp.save(buffer, "PNG")
 
@@ -146,8 +157,13 @@ def get_table(img, client):
     document = response.full_text_annotation
 
     table_string = document.text.upper()
+
+    # fix me
     num_entries = 0
     entry_idx = 2
+    while not table_string[0].isnumeric():
+        table_string = table_string[1:]
+
     while (table_string[entry_idx] == '/'):
         num_entries += 1
         entry_idx += 9
@@ -166,7 +182,7 @@ def get_table(img, client):
     for i in range(num_entries):
         procedure_code = table_string[:table_string.find('\n')]
         if (procedure_code[0] == '0'):
-            procedure_code[0] = 'D' + procedure_code[1:]
+            procedure_code = 'D' + procedure_code[1:]
         table_string = table_string[len(procedure_code)+1:]
         table_data[i]['procedure_code'] = procedure_code
     
@@ -187,17 +203,39 @@ def get_table(img, client):
         contract_adj = table_string[:table_string.find('\n')]
         table_string = table_string[len(contract_adj)+1:]
         table_data[i]['contract_adj'] = contract_adj
+    
+    return table_data
 
-    # allowed amount
-    for i in range(num_entries):
-        allowed_amount = table_string[:table_string.find('\n')]
-        table_string = table_string[len(allowed_amount)+1:]
-        table_data[i]['allowed_amount'] = allowed_amount
+
+@threadpool
+def get_table2(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((width/2, height/2.9, width, height/1.7))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+    table_data = res_table.result()
+
+    num_entries = len(table_data)
 
     # deductible
     for i in range(num_entries):
         if table_string[0] == 'D':
-            deduct = table_string[:table_string.find('\n')+1]
+            deduct = table_string[:table_string.find('\n')]
+            table_string = table_string[len(deduct)+1:]
+        elif table_string[0] == '0':
+            deduct = table_string[:table_string.find('\n')]
+            deduct = 'D' + deduct[1:]
             table_string = table_string[len(deduct)+1:]
         else:
             deduct = '-'
@@ -206,11 +244,17 @@ def get_table(img, client):
     #patient co-pay
     for i in range(num_entries):
         if table_string[0] == 'P':
-            patient_copay = table_string[:table_string.find('\n')+1]
+            patient_copay = table_string[:table_string.find('\n')]
             table_string = table_string[len(patient_copay)+1:]
         else:
             patient_copay = '-'
         table_data[i]['patient_copay'] = patient_copay
+
+    # allowed amount
+    for i in range(num_entries):
+        allowed_amount = table_string[:table_string.find('\n')]
+        table_string = table_string[len(allowed_amount)+1:]
+        table_data[i]['allowed_amount'] = allowed_amount
 
     # co-pay
     for i in range(num_entries):
@@ -231,23 +275,27 @@ def get_table(img, client):
         if patient_payment[-1].isalpha():
             patient_payment = patient_payment[:-1]
         table_data[i]['patient_payment'] = patient_payment
-    
+
+    print(f'table_data: {table_data}')
+
     return table_data
 
 
-def main(filename=None):
+
+def extract(filename=None):
     if (filename != None):
         IMAGE_PATH = filename
     else:
-        IMAGE_PATH = 'dataset/eob1.jpg'
+        IMAGE_PATH = 'dataset/eob2.jpg'
 
     client = vision.ImageAnnotatorClient()
 
     # img = process_image_for_ocr(IMAGE_PATH)
 
     img = Image.open(IMAGE_PATH)
+    width, height = img.size
 
-    fix_skew(img, client)
+    img = fix_skew(img, client)
 
     # provider = get_npi(img, client)
     res_npi = get_npi(img, client)
@@ -256,7 +304,9 @@ def main(filename=None):
     res_header = get_header(img, client)
 
     # table_data = get_table(img, client)
-    res_table = get_table(img, client)
+    res_table = get_table1(img, client)
+
+    res_table = get_table2(img, client, res_table)
 
     csv_header = ['Insurance','CONTRACT ACCESS','Network','Provider','Group','Group ID','Date of Service','Submitted Code','Approved Code','Submitted Amount','Approved Amount', 'Allowed Amount','Deductible','Co-Pay','Other Insurance','Co-Pay (%)','Payment','Max Met']
     form_id = str(uuid.uuid4())
@@ -275,7 +325,7 @@ def main(filename=None):
 
             rows.append([insurance,
                         product,
-                        'Yes' if network else 'No', 
+                        network, 
                         provider, 
                         group_name, 
                         group_id, 
@@ -297,4 +347,4 @@ def main(filename=None):
 
 
 if __name__ == "__main__":
-    main()
+    extract()

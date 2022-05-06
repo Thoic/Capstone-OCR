@@ -2,7 +2,7 @@ import os
 from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 import json
-from showcase_scripts.form_extract import main  as extract_form
+from showcase_scripts.form_extract import extract
 
 UPLOAD_FOLDER = os.path.join('static', 'upload')
 ALLOWED_EXTENSIONS = { 'jpg' }
@@ -41,7 +41,7 @@ def upload_file():
 def view_fields(filename=''):
     try:
         image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        data, form_id = extract_form(image)
+        data, form_id = extract(image)
         return render_template('view.html', data=data, image=filename, form_id=form_id)
 
     except Exception as e:
