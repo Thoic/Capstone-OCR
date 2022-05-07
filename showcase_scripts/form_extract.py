@@ -25,7 +25,7 @@ def threadpool(f, executor=None):
     return wrap
 
 
-OUT_DIR = 'output'
+OUT_DIR = 'static/output'
 
 
 def fix_skew(img, client):
@@ -45,7 +45,7 @@ def fix_skew(img, client):
     document = response.full_text_annotation
     page = document.pages[0]
 
-    vertices = page.blocks[0].bounding_box.vertices
+    vertices = page.blocks[1].bounding_box.vertices
     tilt_angle = math.atan2(vertices[3].y-vertices[2].y,vertices[2].x-vertices[3].x) * (180/math.pi)
     img = img.rotate(-tilt_angle)
 
@@ -319,9 +319,9 @@ def extract(filename=None):
         rows = []
         for item in res_table.result():
 
-            if float(item['max_approved']) != float(item['submitted_amount']) - float(item['contract_adj']):
-                print('something wrong with doc parsing')
-                break
+            # if float(item['max_approved']) != float(item['submitted_amount']) - float(item['contract_adj']):
+            #     print('something wrong with doc parsing')
+            #     break
 
             rows.append([insurance,
                         product,

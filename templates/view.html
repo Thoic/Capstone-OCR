@@ -14,6 +14,9 @@
     {% if image %}
         <img src="{{ url_for('static', filename='upload/' + image) }}" alt="form image" width="600" height="730" align="right"/>
     {% endif %}
+    <a href="{{ url_for('static', filename='output/' + form_id + '.csv')}}" download>
+        Download as CSV
+    </a>
     {% for entry in data %}
     <h2>Entry: {{ loop.index }}</h2>
     <ul>

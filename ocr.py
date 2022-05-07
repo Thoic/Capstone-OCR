@@ -16,7 +16,7 @@ def allowed_file(filename):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index2.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
@@ -49,5 +49,5 @@ def view_fields(filename=''):
         return redirect(url_for('upload_file'))
 
 @app.route('/tech.html')
-def image():
+def tech():
     return render_template('tech.html')
