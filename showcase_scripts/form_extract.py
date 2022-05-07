@@ -25,7 +25,7 @@ def threadpool(f, executor=None):
     return wrap
 
 
-OUT_DIR = 'static/output'
+OUT_DIR = 'static'
 
 
 def fix_skew(img, client):

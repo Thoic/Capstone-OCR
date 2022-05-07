@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 import json
 from showcase_scripts.form_extract import extract
 
-UPLOAD_FOLDER = os.path.join('static', 'upload')
+UPLOAD_FOLDER = 'static'
 ALLOWED_EXTENSIONS = { 'jpg' }
 
 app = Flask(__name__)

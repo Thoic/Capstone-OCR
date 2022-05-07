@@ -2,7 +2,7 @@
 {% if data %}
 <head>
     <title>{{ form_id }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/view.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='view.css') }}">
 </head>
 <body>
     <ul class="navbar">
@@ -12,9 +12,9 @@
     </ul> 
     <h1>Form Data</h1>
     {% if image %}
-        <img src="{{ url_for('static', filename='upload/' + image) }}" alt="form image" width="600" height="730" align="right"/>
+        <img src="{{ url_for('static', filename=image) }}" alt="form image" width="600" height="730" align="right"/>
     {% endif %}
-    <a href="{{ url_for('static', filename='output/' + form_id + '.csv')}}" download>
+    <a href="{{ url_for('static', filename=form_id + '.csv')}}" download>
         Download as CSV
     </a>
     {% for entry in data %}

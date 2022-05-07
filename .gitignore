@@ -1,6 +1,6 @@
 __pycache__/
 .venv/
-static/upload/*.jpg
+static/*.jpg
 .vscode/
 google_key/*.json
-output/*.csv
+static/*.csv
