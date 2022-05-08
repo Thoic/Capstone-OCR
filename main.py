@@ -37,7 +37,7 @@ def upload_file():
             return redirect(url_for('view_fields', filename=filename))
     return render_template('upload.html')
 
-@app.route('/upload/<string:filename>')
+@app.route('/upload/<string:filename>?')
 def view_fields(filename=''):
     try:
         # image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
