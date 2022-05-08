@@ -66,7 +66,8 @@ Eric Chen, Kaden Cochran, Nick Thompson
 
 ## Demo
 
-[Try me!](https://youtu.be/RgIAEQu2wmE)
+[Try me!](/upload)
+[Video](https://youtu.be/RgIAEQu2wmE)
 
 ---
 
