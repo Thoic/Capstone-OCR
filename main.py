@@ -40,8 +40,8 @@ def upload_file():
 @app.route('/upload/<string:filename>')
 def view_fields(filename=''):
     try:
-        image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        data, form_id = extract(image)
+        # image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        data, form_id = extract(filename)
         return render_template('view.html', data=data, image=filename, form_id=form_id)
 
     except Exception as e:

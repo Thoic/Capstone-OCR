@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 
 from google.cloud import vision
-from PIL import Image
+from PIL import Image, ImageDraw
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -139,13 +139,12 @@ def get_header(img, client):
 
     return (product, insurance, group_name, group_id, network)
 
-
 @threadpool
-def get_table1(img, client):
+def get_dates(img, client):
     width, height = img.size
 
     # image of form table
-    img_temp = img.crop((width/8, height/2.9, width/2, height/1.7))
+    img_temp = img.crop((width/6.9, height/2.9, width/4.64, height/1.9))
     buffer = io.BytesIO()
     img_temp.save(buffer, "PNG")
 
@@ -158,25 +157,39 @@ def get_table1(img, client):
 
     table_string = document.text.upper()
 
-    # fix me
-    num_entries = 0
-    entry_idx = 2
-    while not table_string[0].isnumeric():
-        table_string = table_string[1:]
-
-    while (table_string[entry_idx] == '/'):
-        num_entries += 1
-        entry_idx += 9
+    num_entries = len(document.pages[0].blocks[0].paragraphs[0].words)
 
     table_data = []
     for i in range(num_entries):
         table_data.append({})
 
-    # add dates
     for i in range(num_entries):
         date = table_string[:table_string.find('\n')]
         table_string = table_string[len(date)+1:]
         table_data[i]['date'] = date
+
+    return table_data
+
+@threadpool
+def procedure_codes(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((width/4.5, height/2.9, width/3.65, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
 
     # add codes
     for i in range(num_entries):
@@ -185,18 +198,87 @@ def get_table1(img, client):
             procedure_code = 'D' + procedure_code[1:]
         table_string = table_string[len(procedure_code)+1:]
         table_data[i]['procedure_code'] = procedure_code
-    
+
+    return table_data
+
+@threadpool
+def submitted_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((width/3.5, height/2.9, width/2.8, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
+
     # add submitted amount
     for i in range(num_entries):
         submitted_amount = table_string[:table_string.find('\n')]
         table_string = table_string[len(submitted_amount)+1:]
         table_data[i]['submitted_amount'] = submitted_amount
+    
+    return table_data
+
+@threadpool
+def approved_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((width/2.7, height/2.9, width/2.245, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
 
     # maximum approved fee
     for i in range(num_entries):
         max_approved = table_string[:table_string.find('\n')]
         table_string = table_string[len(max_approved)+1:]
         table_data[i]['max_approved'] = max_approved
+
+    return table_data
+
+@threadpool
+def adjust_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((width/2.6 + 180, height/2.9, width/2.245 + 154, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
 
     # contract dentist adjustment
     for i in range(num_entries):
@@ -206,13 +288,12 @@ def get_table1(img, client):
     
     return table_data
 
-
 @threadpool
-def get_table2(img, client, res_table):
+def allowed_amounts(img, client, res_table):
     width, height = img.size
 
     # image of form table
-    img_temp = img.crop((width/1.9, height/2.9, width, height/1.9))
+    img_temp = img.crop((width/1.9, height/2.9, width/1.718, height/1.9))
     buffer = io.BytesIO()
     img_temp.save(buffer, "PNG")
 
@@ -224,26 +305,26 @@ def get_table2(img, client, res_table):
     document = response.full_text_annotation
 
     table_string = document.text.upper()
-    table_data = res_table.result()
 
+    table_data = res_table.result()
     num_entries = len(table_data)
 
     # deductible
     for i in range(num_entries):
-        if table_string[0] == 'D':
-            deduct = table_string[:table_string.find('\n')]
-            table_string = table_string[len(deduct)+1:]
-        else:
-            deduct = '-'
+        # if table_string[0] == 'D':
+        #     deduct = table_string[:table_string.find('\n')]
+        #     table_string = table_string[len(deduct)+1:]
+        # else:
+        deduct = '-'
         table_data[i]['deduct'] = deduct
 
     #patient co-pay
     for i in range(num_entries):
-        if table_string[0] == 'P':
-            patient_copay = table_string[:table_string.find('\n')]
-            table_string = table_string[len(patient_copay)+1:]
-        else:
-            patient_copay = '-'
+        # if table_string[0] == 'P':
+        #     patient_copay = table_string[:table_string.find('\n')]
+        #     table_string = table_string[len(patient_copay)+1:]
+        # else:
+        patient_copay = '-'
         table_data[i]['patient_copay'] = patient_copay
 
     # allowed amount
@@ -251,19 +332,87 @@ def get_table2(img, client, res_table):
         allowed_amount = table_string[:table_string.find('\n')]
         table_string = table_string[len(allowed_amount)+1:]
         table_data[i]['allowed_amount'] = allowed_amount
+    return table_data
+
+@threadpool
+def copay_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((1764, height/2.9, 1875, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
 
     # co-pay
     for i in range(num_entries):
         co_pay = table_string[:table_string.find('\n')]
         table_string = table_string[len(co_pay)+1:]
         table_data[i]['co_pay'] = co_pay
-    
+
+    return table_data
+
+@threadpool
+def payment_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((1885, height/2.9, 2075, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
+
     # payment
     for i in range(num_entries):
         payment = table_string[:table_string.find('\n')]
         table_string = table_string[len(payment)+1:]
         table_data[i]['payment'] = payment
-    
+
+    return table_data
+
+@threadpool
+def patient_amounts(img, client, res_table):
+    width, height = img.size
+
+    # image of form table
+    img_temp = img.crop((2090, height/2.9, 2290, height/1.9))
+    buffer = io.BytesIO()
+    img_temp.save(buffer, "PNG")
+
+    content = buffer.getvalue()
+
+    image = vision.Image(content=content)
+
+    response = client.document_text_detection(image=image)
+    document = response.full_text_annotation
+
+    table_string = document.text.upper()
+
+    table_data = res_table.result()
+    num_entries = len(table_data)
+
     # patient payment
     for i in range(num_entries):
         patient_payment = table_string[:table_string.find('\n')]
@@ -273,66 +422,77 @@ def get_table2(img, client, res_table):
         table_data[i]['patient_payment'] = patient_payment
 
     print(f'table_data: {table_data}')
-
+    
     return table_data
 
-
-
 def extract(filename=None):
-    if (filename != None):
-        IMAGE_PATH = filename
+    if (filename == None):
+        IMAGE_PATH = 'eob10.jpg'
     else:
-        IMAGE_PATH = 'dataset/eob2.jpg'
+        IMAGE_PATH = filename
+        
 
     client = vision.ImageAnnotatorClient()
 
     # img = process_image_for_ocr(IMAGE_PATH)
 
-    img = Image.open(IMAGE_PATH)
-    width, height = img.size
+    img = Image.open('static/' + IMAGE_PATH)
 
     img = fix_skew(img, client)
 
-    # provider = get_npi(img, client)
     res_npi = get_npi(img, client)
 
-    # product, insurance, group_name, group_id, network = get_header(img, client)
     res_header = get_header(img, client)
 
-    # table_data = get_table(img, client)
-    res_table = get_table1(img, client)
+    res_table = get_dates(img, client)
 
-    res_table = get_table2(img, client, res_table)
+    res_table = procedure_codes(img, client, res_table)
+
+    res_table = submitted_amounts(img, client, res_table)
+    
+    res_table = approved_amounts(img, client, res_table)
+
+    # no need to run this
+    # res_table = adjust_amounts(img, client, res_table)
+
+    res_table = allowed_amounts(img, client, res_table)
+
+    res_table = copay_amounts(img, client, res_table)
+    
+    res_table = payment_amounts(img, client, res_table)
+
+    res_table = patient_amounts(img, client, res_table)
 
     csv_header = ['Insurance','CONTRACT ACCESS','Network','Provider','Group','Group ID','Date of Service','Submitted Code','Approved Code','Submitted Amount','Approved Amount', 'Allowed Amount','Deductible','Co-Pay','Other Insurance','Co-Pay (%)','Payment','Max Met']
-    form_id = str(uuid.uuid4())
-    with open(os.path.join(OUT_DIR, form_id+'.csv'), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
 
-        writer.writerow(csv_header)
-        provider = res_npi.result()
-        (product, insurance, group_name, group_id, network) = res_header.result()
-        rows = []
-        for item in res_table.result():
+    provider = res_npi.result()
+    (product, insurance, group_name, group_id, network) = res_header.result()
 
-            rows.append([insurance,
-                        product,
-                        network, 
-                        provider, 
-                        group_name, 
-                        group_id, 
-                        item['date'], 
-                        item['procedure_code'], 
-                        item['procedure_code'], 
-                        item['submitted_amount'], 
-                        item['max_approved'], 
-                        item['allowed_amount'],
-                        item['deduct'],item['patient_copay'],'-',
-                        item['co_pay'],
-                        item['payment'],''])
+    rows = []
+    for item in res_table.result():
+        rows.append([insurance,
+                    product,
+                    network, 
+                    provider, 
+                    group_name, 
+                    group_id, 
+                    item['date'], 
+                    item['procedure_code'], 
+                    item['procedure_code'], 
+                    item['submitted_amount'], 
+                    item['max_approved'], 
+                    item['allowed_amount'],
+                    item['deduct'],item['patient_copay'],'-',
+                    item['co_pay'],
+                    item['payment'],''])
 
-        writer.writerows(rows)
+    form_id = IMAGE_PATH[:-4]
+    if filename == None:
+        with open(os.path.join(OUT_DIR, form_id+'.csv'), 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
 
+            writer.writerow(csv_header)
+            writer.writerows(rows)
     img.close()
 
     return rows, form_id

@@ -60,13 +60,13 @@ Eric Chen, Kaden Cochran, Nick Thompson
 ---
 
 ### Output cont.
-![w: 800 center](../static/Screenshot%20from%202022-05-08%2000-13-29.png)
+![w: 800 center](../static/app.jpg)
 
 ---
 
 ## Demo
 
-[Try me!](/upload)
+[Try me!](https://youtu.be/RgIAEQu2wmE)
 
 ---
 

@@ -2,4 +2,3 @@ __pycache__/
 .venv/
 .vscode/
 google_key/*.json
-static/*.csv
