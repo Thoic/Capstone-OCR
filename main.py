@@ -21,20 +21,24 @@ def home():
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
+        if 'image' in request.values:
+            file = request.values['image']
         # check if the post request has the file part
-        if 'file' not in request.files:
+        elif 'file' not in request.files:
             flash('No file part')
             return redirect(request.url)
-        file = request.files['file']
+        else:
+            file = request.files['file'].filename
         # If the user does not select a file, the browser submits an
         # empty file without a filename.
-        if file.filename == '':
+        if file == '':
             flash('No selected file')
             return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+        if file and allowed_file(file):
+            filename = secure_filename(file)
             # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('view_fields', filename=filename))
+            return redirect(url_for('view_fields', filename=filename))       
+
     return render_template('upload.html')
 
 @app.route('/view/<string:filename>')
