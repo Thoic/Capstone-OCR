@@ -1,6 +1,5 @@
 __pycache__/
 .venv/
-static/*.jpg
 .vscode/
 google_key/*.json
 static/*.csv

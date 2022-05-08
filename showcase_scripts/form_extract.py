@@ -212,7 +212,7 @@ def get_table2(img, client, res_table):
     width, height = img.size
 
     # image of form table
-    img_temp = img.crop((width/2, height/2.9, width, height/1.7))
+    img_temp = img.crop((width/1.9, height/2.9, width, height/1.9))
     buffer = io.BytesIO()
     img_temp.save(buffer, "PNG")
 
@@ -232,10 +232,6 @@ def get_table2(img, client, res_table):
     for i in range(num_entries):
         if table_string[0] == 'D':
             deduct = table_string[:table_string.find('\n')]
-            table_string = table_string[len(deduct)+1:]
-        elif table_string[0] == '0':
-            deduct = table_string[:table_string.find('\n')]
-            deduct = 'D' + deduct[1:]
             table_string = table_string[len(deduct)+1:]
         else:
             deduct = '-'
@@ -318,10 +314,6 @@ def extract(filename=None):
         (product, insurance, group_name, group_id, network) = res_header.result()
         rows = []
         for item in res_table.result():
-
-            # if float(item['max_approved']) != float(item['submitted_amount']) - float(item['contract_adj']):
-            #     print('something wrong with doc parsing')
-            #     break
 
             rows.append([insurance,
                         product,
