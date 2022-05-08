@@ -37,15 +37,13 @@ def upload_file():
             return redirect(url_for('view_fields', filename=filename))
     return render_template('upload.html')
 
-@app.route('/upload/<string:filename>?')
-def view_fields(filename=''):
-    try:
+@app.route('/view/<string:filename>')
+def view_fields(filename=None):
+    if filename:
         # image = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         data, form_id = extract(filename)
         return render_template('view.html', data=data, image=filename, form_id=form_id)
-
-    except Exception as e:
-        print(e)
+    else:
         return redirect(url_for('upload_file'))
 
 @app.route('/tech.html')
