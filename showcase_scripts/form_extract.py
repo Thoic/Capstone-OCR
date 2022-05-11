@@ -63,6 +63,8 @@ def fix_skew(img, client):
     transform_mat = (1, 0, -translatew, 0, 1, -translateh)
     img = img.transform(size=(width, height), method=Image.Transform.AFFINE, data=transform_mat)
 
+    img_temp.close()
+
     return img
 
 
@@ -87,6 +89,8 @@ def get_npi(img, client):
         npi_idx = document.text.find('NPI; ')
     provider = document.text[npi_idx+5:document.text.find(')')].strip()
     print(f'provider: {provider}')
+
+    img_temp.close()
 
     return provider
 
@@ -136,6 +140,8 @@ def get_header(img, client):
     print(f'network: {network}')
 
     network = 'Yes' if network == 'PPO DENTIST' or network == 'PREMIER DENTIST' else 'No'
+    
+    img_temp.close()
 
     return (product, insurance, group_name, group_id, network)
 
@@ -168,6 +174,8 @@ def get_dates(img, client):
         table_string = table_string[len(date)+1:]
         table_data[i]['date'] = date
 
+    img_temp.close()
+
     return table_data
 
 @threadpool
@@ -199,6 +207,8 @@ def procedure_codes(img, client, res_table):
         table_string = table_string[len(procedure_code)+1:]
         table_data[i]['procedure_code'] = procedure_code
 
+    img_temp.close()
+    
     return table_data
 
 @threadpool
@@ -227,6 +237,8 @@ def submitted_amounts(img, client, res_table):
         submitted_amount = table_string[:table_string.find('\n')]
         table_string = table_string[len(submitted_amount)+1:]
         table_data[i]['submitted_amount'] = submitted_amount
+
+    img_temp.close()
     
     return table_data
 
@@ -257,6 +269,8 @@ def approved_amounts(img, client, res_table):
         table_string = table_string[len(max_approved)+1:]
         table_data[i]['max_approved'] = max_approved
 
+    img_temp.close()
+
     return table_data
 
 @threadpool
@@ -285,6 +299,8 @@ def adjust_amounts(img, client, res_table):
         contract_adj = table_string[:table_string.find('\n')]
         table_string = table_string[len(contract_adj)+1:]
         table_data[i]['contract_adj'] = contract_adj
+
+    img_temp.close()
     
     return table_data
 
@@ -332,6 +348,9 @@ def allowed_amounts(img, client, res_table):
         allowed_amount = table_string[:table_string.find('\n')]
         table_string = table_string[len(allowed_amount)+1:]
         table_data[i]['allowed_amount'] = allowed_amount
+
+    img_temp.close()
+    
     return table_data
 
 @threadpool
@@ -361,6 +380,8 @@ def copay_amounts(img, client, res_table):
         table_string = table_string[len(co_pay)+1:]
         table_data[i]['co_pay'] = co_pay
 
+    img_temp.close()
+
     return table_data
 
 @threadpool
@@ -389,6 +410,8 @@ def payment_amounts(img, client, res_table):
         payment = table_string[:table_string.find('\n')]
         table_string = table_string[len(payment)+1:]
         table_data[i]['payment'] = payment
+
+    img_temp.close()
 
     return table_data
 
@@ -422,6 +445,8 @@ def patient_amounts(img, client, res_table):
         table_data[i]['patient_payment'] = patient_payment
 
     print(f'table_data: {table_data}')
+
+    img_temp.close()
     
     return table_data
 
